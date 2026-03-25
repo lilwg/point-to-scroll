@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.18",
+    "canvas": "^3.2.2",
     "sharp": "^0.34.5"
   }
 }
