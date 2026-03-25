@@ -1,6 +1,12 @@
+// Suppress noisy MediaPipe WASM warnings
+const _warn = console.warn;
+const _error = console.error;
+const suppress = /landmark_projection|gl_context|NORM_RECT/;
+console.warn = (...args) => { if (!suppress.test(args[0])) _warn(...args); };
+console.error = (...args) => { if (!suppress.test(args[0])) _error(...args); };
+
 let handLandmarker = null;
 let canvas, ctx;
-
 
 async function init() {
   canvas = document.getElementById('canvas');
