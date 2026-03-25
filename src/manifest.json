@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "description": "Scroll through recipes with hand gestures — hands-free cooking!",
   "minimum_chrome_version": "116",
-  "permissions": ["sidePanel", "activeTab", "scripting"],
+  "permissions": ["sidePanel", "scripting"],
+  "host_permissions": ["<all_urls>"],
   "side_panel": {
     "default_path": "sidepanel.html"
   },
