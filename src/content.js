@@ -1,3 +1,6 @@
+if (window._pointToScrollLoaded) throw '';
+window._pointToScrollLoaded = true;
+
 let autoScrollInterval = null;
 
 chrome.runtime.onMessage.addListener((message) => {
