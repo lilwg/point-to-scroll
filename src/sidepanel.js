@@ -1,20 +1,11 @@
 // --- State ---
 let isRunning = false;
 let sandboxBusy = false;
-
 let autoScrollActive = false;
 let currentGesture = null;
 let gestureStartTime = 0;
+let scrollSpeed = 6;
 const HOLD_MS = 400;
-
-const CONNECTIONS = [
-  [0,1],[1,2],[2,3],[3,4],
-  [0,5],[5,6],[6,7],[7,8],
-  [0,9],[9,10],[10,11],[11,12],
-  [0,13],[13,14],[14,15],[15,16],
-  [0,17],[17,18],[18,19],[19,20],
-  [5,9],[9,13],[13,17],
-];
 
 // --- DOM refs ---
 const video = document.getElementById('camera');
@@ -24,6 +15,18 @@ const gestureLabel = document.getElementById('gesture-label');
 const toggleBtn = document.getElementById('toggle-btn');
 const startBtn = document.getElementById('start-btn');
 const sandbox = document.getElementById('sandbox');
+const speedSlider = document.getElementById('speed-slider');
+
+speedSlider.addEventListener('input', () => {
+  scrollSpeed = parseInt(speedSlider.value, 10);
+  // Update live if already scrolling
+  if (autoScrollActive) {
+    const down = currentGesture === 'point_down';
+    chrome.runtime.sendMessage({
+      type: 'scroll', action: 'auto-start', speed: down ? scrollSpeed : -scrollSpeed,
+    });
+  }
+});
 
 // --- Sandbox communication ---
 window.addEventListener('message', (event) => {
@@ -55,10 +58,12 @@ async function startCamera_auto() {
   try {
     await startCamera();
 
+    // Use square crop to avoid MediaPipe warnings
+    const size = Math.min(video.videoWidth, video.videoHeight);
     sandbox.contentWindow.postMessage({
       type: 'init',
-      width: video.videoWidth,
-      height: video.videoHeight,
+      width: size,
+      height: size,
     }, '*');
 
     isRunning = true;
@@ -110,7 +115,13 @@ function captureLoop() {
 
   if (video.readyState >= 2 && !sandboxBusy) {
     sandboxBusy = true;
-    createImageBitmap(video).then((bitmap) => {
+    // Crop to square center
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    const size = Math.min(vw, vh);
+    const sx = (vw - size) / 2;
+    const sy = (vh - size) / 2;
+    createImageBitmap(video, sx, sy, size, size).then((bitmap) => {
       sandbox.contentWindow.postMessage(
         { type: 'frame', bitmap, timestamp: performance.now() },
         '*',
@@ -153,7 +164,7 @@ function processGesture(msg) {
     if (!autoScrollActive && Date.now() - gestureStartTime >= HOLD_MS) {
       autoScrollActive = true;
       chrome.runtime.sendMessage({
-        type: 'scroll', action: 'auto-start', speed: down ? 6 : -6,
+        type: 'scroll', action: 'auto-start', speed: down ? scrollSpeed : -scrollSpeed,
       });
       gestureIcon.textContent = down ? '\u{1F447}' : '\u{1F446}';
       gestureLabel.textContent = 'Scrolling ' + (down ? 'down' : 'up');

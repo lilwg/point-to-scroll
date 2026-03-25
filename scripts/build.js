@@ -9,13 +9,17 @@ const MP_DIR = path.join(__dirname, '..', 'node_modules', '@mediapipe', 'tasks-v
 fs.rmSync(DIST, { recursive: true, force: true });
 fs.mkdirSync(DIST, { recursive: true });
 
-// Copy src files
-for (const file of fs.readdirSync(SRC)) {
-  const srcPath = path.join(SRC, file);
-  if (fs.statSync(srcPath).isFile()) {
-    fs.copyFileSync(srcPath, path.join(DIST, file));
+// Copy src files (recursive)
+function copyDir(src, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const s = path.join(src, entry.name);
+    const d = path.join(dest, entry.name);
+    if (entry.isDirectory()) copyDir(s, d);
+    else fs.copyFileSync(s, d);
   }
 }
+copyDir(SRC, DIST);
 
 // Copy MediaPipe vision bundle
 for (const name of ['vision_bundle.mjs', 'vision_bundle.js']) {

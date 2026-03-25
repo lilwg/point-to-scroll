@@ -15,6 +15,7 @@
   <div class="container">
     <header>
       <h1>Point to Scroll</h1>
+      <p class="tagline">Scroll pages hands-free using your camera. Perfect for cooking, crafting, or any time your hands are dirty.</p>
       <p id="status">Loading...</p>
     </header>
 
@@ -26,10 +27,16 @@
     <button id="start-btn" class="start-btn" hidden>Start Camera</button>
     <button id="toggle-btn" class="toggle-btn" hidden>Pause</button>
 
-<div class="guide">
+    <div class="speed-control">
+      <label for="speed-slider">Speed</label>
+      <input type="range" id="speed-slider" min="1" max="15" value="6">
+    </div>
+
+    <div class="guide">
       <h3>How to use</h3>
       <div class="gesture-item"><span>Point up</span><span>Scroll up</span></div>
       <div class="gesture-item"><span>Point down</span><span>Scroll down</span></div>
+      <div class="gesture-item"><span>Open hand</span><span>Stop</span></div>
     </div>
   </div>
 
