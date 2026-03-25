@@ -1,0 +1,13 @@
+{
+  "name": "wave",
+  "version": "1.0.0",
+  "description": "Chrome extension for hands-free recipe scrolling with hand gestures",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.18"
+  }
+}

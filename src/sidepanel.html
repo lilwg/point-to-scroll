@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Point to Scroll</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <iframe id="sandbox" src="sandbox.html"
+    style="width:1px;height:1px;border:0;position:absolute;opacity:0;"></iframe>
+
+  <video id="camera" autoplay playsinline muted style="display:none;"></video>
+
+  <div class="container">
+    <header>
+      <h1>Point to Scroll</h1>
+      <p id="status">Loading...</p>
+    </header>
+
+    <div class="gesture-status">
+      <div id="gesture-icon" class="gesture-icon">...</div>
+      <div id="gesture-label">Loading model...</div>
+    </div>
+
+    <button id="start-btn" class="start-btn" hidden>Start Camera</button>
+    <button id="toggle-btn" class="toggle-btn" hidden>Pause</button>
+
+<div class="guide">
+      <h3>How to use</h3>
+      <div class="gesture-item"><span>Point up</span><span>Scroll up</span></div>
+      <div class="gesture-item"><span>Point down</span><span>Scroll down</span></div>
+    </div>
+  </div>
+
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>
