@@ -6,15 +6,15 @@ console.warn = (...args) => { if (!suppress.test(args[0])) _warn(...args); };
 console.error = (...args) => { if (!suppress.test(args[0])) _error(...args); };
 
 let handLandmarker = null;
-let canvas, ctx;
+let canvas, ctx, video;
+let running = false;
 
 async function init() {
   canvas = document.getElementById('canvas');
   ctx = canvas.getContext('2d');
+  video = document.getElementById('camera');
 
   try {
-    post({ type: 'status', message: 'Loading hand detection model...' });
-
     const { FilesetResolver, HandLandmarker } = await import('./vision_bundle.mjs');
     const vision = await FilesetResolver.forVisionTasks('./wasm');
 
@@ -27,53 +27,60 @@ async function init() {
       numHands: 1,
     });
 
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: 480, height: 480 },
+    });
+    video.srcObject = stream;
+    await new Promise((r) => { video.onloadedmetadata = r; });
+    await video.play();
+
+    const size = Math.min(video.videoWidth, video.videoHeight);
+    canvas.width = size;
+    canvas.height = size;
+
+    running = true;
     post({ type: 'ready' });
+    captureLoop();
   } catch (err) {
     post({ type: 'error', message: err.message });
-    console.error('Sandbox init failed:', err);
+    console.error('Detector init failed:', err);
   }
 }
 
-window.addEventListener('message', (event) => {
-  if (!event.data?.type) return;
+function captureLoop() {
+  if (!running) return;
 
-  switch (event.data.type) {
-    case 'init':
-      canvas.width = event.data.width;
-      canvas.height = event.data.height;
-      break;
-    case 'frame':
-      processFrame(event.data.bitmap, event.data.timestamp);
-      break;
+  if (video.readyState >= 2) {
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    const size = Math.min(vw, vh);
+    const sx = (vw - size) / 2;
+    const sy = (vh - size) / 2;
+
+    createImageBitmap(video, sx, sy, size, size).then((bitmap) => {
+      ctx.drawImage(bitmap, 0, 0);
+      bitmap.close();
+
+      const results = handLandmarker.detectForVideo(canvas, performance.now());
+
+      if (results.landmarks?.length > 0) {
+        const gesture = detectPointing(results.landmarks[0]);
+        post({ type: 'gesture', gesture: gesture || 'idle' });
+      } else {
+        post({ type: 'gesture', gesture: null });
+      }
+    }).catch(() => {});
   }
-});
 
-function processFrame(bitmap, timestamp) {
-  if (!handLandmarker) return;
-
-  ctx.drawImage(bitmap, 0, 0);
-  bitmap.close();
-
-  const results = handLandmarker.detectForVideo(canvas, timestamp);
-
-  if (results.landmarks?.length > 0) {
-    const lm = results.landmarks[0];
-
-    const pointing = detectPointing(lm);
-    const landmarks = lm.map((p) => ({ x: p.x, y: p.y }));
-    post({ type: 'result', gesture: pointing || 'idle', landmarks });
-  } else {
-    post({ type: 'result', gesture: null, landmarks: null });
-  }
+  setTimeout(captureLoop, 100);
 }
 
 function detectPointing(lm) {
   const wrist = lm[0];
   const indexTip = lm[8];
-  const middleTip = lm[12];
 
   const indexDist = Math.hypot(indexTip.x - wrist.x, indexTip.y - wrist.y);
-  const middleDist = Math.hypot(middleTip.x - wrist.x, middleTip.y - wrist.y);
+  const middleDist = Math.hypot(lm[12].x - wrist.x, lm[12].y - wrist.y);
   const ringDist = Math.hypot(lm[16].x - wrist.x, lm[16].y - wrist.y);
   const pinkyDist = Math.hypot(lm[20].x - wrist.x, lm[20].y - wrist.y);
 
@@ -88,5 +95,14 @@ function detectPointing(lm) {
 function post(data) {
   window.parent.postMessage(data, '*');
 }
+
+window.addEventListener('message', (event) => {
+  if (event.data?.type === 'stop') {
+    running = false;
+    if (video?.srcObject) {
+      video.srcObject.getTracks().forEach((t) => t.stop());
+    }
+  }
+});
 
 init();

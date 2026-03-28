@@ -1,27 +1,35 @@
-chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
-  .catch(console.error);
+const activeTabs = new Set();
 
-const injected = new Set();
-
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === 'scroll') {
-    chrome.tabs.query({ active: true, currentWindow: true }).then(async ([tab]) => {
-      if (!tab?.id) return;
-
-      // Inject content script on first scroll to this tab
-      if (!injected.has(tab.id)) {
-        try {
-          await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ['content.js'],
-          });
-        } catch {}
-        injected.add(tab.id);
-      }
-
-      chrome.tabs.sendMessage(tab.id, message).catch(() => {});
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'activate') {
+    const tabId = message.tabId;
+    chrome.scripting.executeScript({
+      target: { tabId },
+      files: ['content.js'],
+    }).then(() => {
+      activeTabs.add(tabId);
+      chrome.action.setBadgeText({ text: 'ON', tabId });
+      chrome.action.setBadgeBackgroundColor({ color: '#2ec4b6', tabId });
+      sendResponse({ ok: true });
+    }).catch((err) => {
+      sendResponse({ ok: false, error: err.message });
     });
+    return true;
+  }
+
+  if (message.type === 'deactivate') {
+    const tabId = message.tabId;
+    chrome.tabs.sendMessage(tabId, { type: 'p2s-stop' }).catch(() => {});
+    activeTabs.delete(tabId);
+    chrome.action.setBadgeText({ text: '', tabId });
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  if (message.type === 'get-state') {
+    sendResponse({ active: activeTabs.has(message.tabId) });
+    return true;
   }
 });
 
-chrome.tabs.onRemoved.addListener((tabId) => injected.delete(tabId));
+chrome.tabs.onRemoved.addListener((tabId) => activeTabs.delete(tabId));

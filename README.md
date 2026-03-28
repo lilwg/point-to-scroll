@@ -1,4 +1,4 @@
-# Wave
+# Point to Scroll
 
 Scroll through recipes with hand gestures — no touching your computer with messy cooking hands.
 
@@ -14,29 +14,33 @@ Then load in Chrome:
 1. Go to `chrome://extensions`
 2. Enable **Developer mode** (top-right toggle)
 3. Click **Load unpacked** and select the `dist/` folder
-4. Click the Wave icon in your toolbar to open the gesture panel
 
-## Gestures
+## Usage
+
+1. Navigate to any page you want to scroll hands-free
+2. Click the Point to Scroll icon in your toolbar — detection starts automatically (grant camera access if prompted, one-time)
+3. Point up or down to scroll the page
 
 | Gesture | Action |
 |---------|--------|
-| Open Palm | Scroll down |
-| Point Up / Thumbs Up | Scroll up |
-| Peace Sign | Toggle auto-scroll |
-| Fist | Stop auto-scroll |
+| Point up | Scroll up |
+| Point down | Scroll down |
 
-Hold a gesture for ~0.5 seconds to trigger. Keep holding to repeat (scroll gestures).
+Hold a gesture for ~0.5 seconds to trigger continuous scrolling. A small emoji (👆/👇) appears in the top-right corner of the page to show the active gesture.
+
+Use the **speed slider** in the popup to adjust scroll speed, or click **Stop** to turn off detection.
 
 ## How it works
 
-Wave uses your webcam and [MediaPipe Hand Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker) to detect hand gestures in real time. The side panel shows a live camera preview with hand tracking overlay. All processing runs locally in your browser — no data is sent anywhere.
+Point to Scroll uses your webcam and [MediaPipe Hand Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker) to detect hand gestures in real time. All processing runs locally in your browser — no data is sent anywhere.
+
+The extension activates per-tab and only requests the `activeTab`, `scripting`, and `storage` permissions — no broad host access needed.
 
 ## Tips
 
 - Position your hand 1-2 feet from the camera
 - Use good lighting for best detection
-- Auto-scroll is great for following long recipes hands-free
-- Click Pause in the side panel to temporarily disable detection
+- Great for following long recipes, documentation, or articles hands-free
 
 ## Requirements
 

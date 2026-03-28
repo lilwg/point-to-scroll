@@ -1,23 +1,20 @@
 {
   "manifest_version": 3,
   "name": "Point to Scroll",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Scroll through recipes with hand gestures — hands-free cooking!",
   "minimum_chrome_version": "116",
-  "permissions": ["sidePanel", "scripting"],
-  "host_permissions": ["<all_urls>"],
-  "side_panel": {
-    "default_path": "sidepanel.html"
-  },
+  "permissions": ["activeTab", "scripting", "storage"],
   "background": {
     "service_worker": "background.js"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
   },
-  "sandbox": {
-    "pages": ["sandbox.html"]
-  },
+  "web_accessible_resources": [{
+    "resources": ["detector.html", "detector.js", "vision_bundle.mjs", "wasm/*", "hand_landmarker.task"],
+    "matches": ["<all_urls>"]
+  }],
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -28,6 +25,7 @@
       "16": "icons/icon16.png",
       "48": "icons/icon48.png"
     },
-    "default_title": "Point to Scroll"
+    "default_title": "Point to Scroll",
+    "default_popup": "popup.html"
   }
 }
